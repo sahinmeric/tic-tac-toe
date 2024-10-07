@@ -262,7 +262,18 @@ const Game: React.FC = () => {
             </Box>
           )}
           <Typography variant="h6" gutterBottom>
-            {`You are Player ${currentPlayer}`}
+            {gameState.winner
+              ? gameState.winner === currentPlayer
+                ? "You are the winner!"
+                : `Player ${gameState.winner} won!`
+              : `You are Player ${currentPlayer}`}
+          </Typography>
+          <Typography variant="h6">
+            {currentPlayer === (gameState.xIsNext ? "X" : "O")
+              ? "It's your turn."
+              : `Waiting for Player ${
+                  gameState.xIsNext ? "X" : "O"
+                } to make a move.`}
           </Typography>
           <Board
             squares={gameState.squares}
@@ -270,11 +281,6 @@ const Game: React.FC = () => {
             winningLine={gameState.winningLine}
           />
           <Box mt={4} className="game-info">
-            <Typography variant="h6">
-              {gameState.winner
-                ? `Winner: ${gameState.winner}`
-                : `Next player: ${gameState.xIsNext ? "X" : "O"}`}
-            </Typography>
             <Stack direction="row" justifyContent="center" spacing={2}>
               <Button variant="contained" color="error" onClick={restartGame}>
                 Restart Game
