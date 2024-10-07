@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Button, Container, TextField, Typography, Box } from "@mui/material";
 import Board from "./Board";
 import { database } from "./firebaseConfig";
-import { ref, onValue, set, push } from "firebase/database";
+import { ref, onValue, set, push, get } from "firebase/database";
 
 interface GameState {
   squares: string[];
@@ -19,13 +19,14 @@ const initialGameState: GameState = {
 const Game: React.FC = () => {
   const [gameId, setGameId] = useState<string | null>(null);
   const [gameState, setGameState] = useState<GameState>(initialGameState);
+  const [showGameIdInput, setShowGameIdInput] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // useEffect hook to listen for game state changes in Firebase
   useEffect(() => {
     if (gameId) {
       const gameRef = ref(database, `games/${gameId}`);
 
-      // Listener for changes in the game state
       const unsubscribe = onValue(gameRef, (snapshot) => {
         const state = snapshot.val();
         if (state) {
@@ -36,14 +37,41 @@ const Game: React.FC = () => {
     }
   }, [gameId]);
 
+  const handleJoinClick = () => {
+    setShowGameIdInput(true);
+  };
+
   const createNewGame = () => {
     const newGameRef = push(ref(database, "games"));
     set(newGameRef, initialGameState);
     setGameId(newGameRef.key);
   };
 
-  const joinGame = (id: string) => {
-    setGameId(id);
+  const joinGame = async (id: string) => {
+    if (!id.trim()) {
+      setErrorMessage("Please enter a valid game ID.");
+      return;
+    }
+
+    const gameRef = ref(database, `games/${id}`);
+
+    try {
+      const snapshot = await get(gameRef);
+      if (!snapshot.exists()) {
+        setErrorMessage("Game ID not found. Please enter a valid game ID.");
+        return;
+      }
+
+      setGameId(id);
+      const state = snapshot.val();
+      setGameState(state);
+      setErrorMessage(null);
+    } catch (error) {
+      console.error("Error checking game ID:", error);
+      setErrorMessage(
+        "An error occurred while trying to join the game. Please try again."
+      );
+    }
   };
 
   const handleClick = (index: number) => {
@@ -93,7 +121,7 @@ const Game: React.FC = () => {
         Tic-Tac-Toe
       </Typography>
       {!gameId && (
-        <Box mt={4}>
+        <Box mt={4} display="flex" flexDirection="column" alignItems="center">
           <Button
             variant="contained"
             color="primary"
@@ -102,26 +130,34 @@ const Game: React.FC = () => {
           >
             Create New Game
           </Button>
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            mb={2}
-          >
-            <TextField
-              variant="outlined"
-              label="Enter Game ID"
-              onChange={(e) => joinGame(e.target.value)}
-              sx={{ marginRight: 2 }}
-            />
+          {!showGameIdInput ? (
             <Button
               variant="contained"
               color="secondary"
-              onClick={() => joinGame(gameId || "")}
+              onClick={handleJoinClick}
             >
               Join Game
             </Button>
-          </Box>
+          ) : (
+            <Box display="flex" flexDirection="column" alignItems="center">
+              <TextField
+                variant="outlined"
+                label="Game id"
+                placeholder="Paste the game ID here"
+                onChange={(e) => joinGame(e.target.value)}
+                sx={{ marginBottom: 2, width: "300px" }}
+              />
+              {errorMessage && (
+                <Typography
+                  color="error"
+                  variant="subtitle2"
+                  sx={{ marginBottom: 2 }}
+                >
+                  {errorMessage}
+                </Typography>
+              )}
+            </Box>
+          )}
         </Box>
       )}
       {gameId && (
