@@ -14,6 +14,13 @@ import Board from "./Board";
 import { database } from "./firebaseConfig";
 import { ref, onValue, set, push, get } from "firebase/database";
 import Confetti from "react-confetti";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
+import AnimatedWaitingMessage from "./AnimatedWaitingMessage";
 
 interface GameState {
   squares: string[];
@@ -38,6 +45,7 @@ const Game: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<"X" | "O" | null>(null);
   const [copyTooltipOpen, setCopyTooltipOpen] = useState(false);
+  const [openEndGameDialog, setOpenEndGameDialog] = useState(false);
 
   useEffect(() => {
     if (gameId) {
@@ -51,6 +59,12 @@ const Game: React.FC = () => {
       return () => unsubscribe();
     }
   }, [gameId]);
+
+  useEffect(() => {
+    if (gameState.winner) {
+      setOpenEndGameDialog(true); // Open the dialog when the game ends
+    }
+  }, [gameState.winner]);
 
   const createNewGame = () => {
     const newGameRef = push(ref(database, "games"));
@@ -187,8 +201,44 @@ const Game: React.FC = () => {
   return (
     <Container maxWidth="sm" sx={{ textAlign: "center", marginTop: 4 }}>
       {gameState.winner === currentPlayer && (
-        <Confetti width={window.innerWidth} height={window.innerHeight} />
+        <Confetti
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+        />
       )}
+      <Dialog
+        open={openEndGameDialog}
+        onClose={() => setOpenEndGameDialog(false)}
+        PaperProps={{
+          style: { padding: "20px", textAlign: "center" },
+        }}
+      >
+        <DialogTitle>
+          {gameState.winner === currentPlayer
+            ? "🎉 Congratulations! 🎉"
+            : "Game Over!"}
+        </DialogTitle>
+        <DialogContent>
+          <Typography
+            variant="h5"
+            color={gameState.winner === currentPlayer ? "primary" : "error"}
+          >
+            {gameState.winner === currentPlayer
+              ? "You are the winner! 🥳"
+              : "You lost! 😔"}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setOpenEndGameDialog(false)}
+          >
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Typography variant="h3" gutterBottom>
         Tic-Tac-Toe
       </Typography>
@@ -266,19 +316,17 @@ const Game: React.FC = () => {
             </Box>
           )}
           <Typography variant="h6" gutterBottom>
-            {gameState.winner
-              ? gameState.winner === currentPlayer
-                ? "You are the winner!"
-                : `Player ${gameState.winner} won!`
-              : `You are Player ${currentPlayer}`}
+            {`You are Player ${currentPlayer}`}
           </Typography>
-          <Typography variant="h6">
-            {currentPlayer === (gameState.xIsNext ? "X" : "O")
-              ? "It's your turn."
-              : `Waiting for Player ${
-                  gameState.xIsNext ? "X" : "O"
-                } to make a move.`}
-          </Typography>
+          {!gameState.winner &&
+            (currentPlayer === (gameState.xIsNext ? "X" : "O") ? (
+              <Typography variant="h6" gutterBottom>
+                It's your turn!
+              </Typography>
+            ) : (
+              <AnimatedWaitingMessage />
+            ))}
+
           <Board
             squares={gameState.squares}
             onClick={handleClick}
