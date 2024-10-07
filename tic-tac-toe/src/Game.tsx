@@ -229,7 +229,7 @@ const Game: React.FC = () => {
       )}
       {gameId && (
         <>
-          {(!gameState.playerX || !gameState.playerO) && (
+          {!(gameState.playerX && gameState.playerO) && (
             <Box
               display="flex"
               justifyContent="center"
