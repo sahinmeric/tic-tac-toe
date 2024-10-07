@@ -7,6 +7,7 @@ import {
   Box,
   Tooltip,
   IconButton,
+  Stack,
 } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import Board from "./Board";
@@ -274,14 +275,21 @@ const Game: React.FC = () => {
                 ? `Winner: ${gameState.winner}`
                 : `Next player: ${gameState.xIsNext ? "X" : "O"}`}
             </Typography>
-            <Button
-              variant="contained"
-              color="error"
-              onClick={restartGame}
-              sx={{ mt: 2 }}
-            >
-              Restart Game
-            </Button>
+            <Stack direction="row" justifyContent="center" spacing={2}>
+              <Button variant="contained" color="error" onClick={restartGame}>
+                Restart Game
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => {
+                  setGameId(null);
+                  setShowGameIdInput(false);
+                }}
+              >
+                Go to Main Page
+              </Button>
+            </Stack>
           </Box>
         </>
       )}
