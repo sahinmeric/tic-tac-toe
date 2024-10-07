@@ -13,6 +13,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import Board from "./Board";
 import { database } from "./firebaseConfig";
 import { ref, onValue, set, push, get } from "firebase/database";
+import Confetti from "react-confetti";
 
 interface GameState {
   squares: string[];
@@ -185,6 +186,9 @@ const Game: React.FC = () => {
 
   return (
     <Container maxWidth="sm" sx={{ textAlign: "center", marginTop: 4 }}>
+      {gameState.winner === currentPlayer && (
+        <Confetti width={window.innerWidth} height={window.innerHeight} />
+      )}
       <Typography variant="h3" gutterBottom>
         Tic-Tac-Toe
       </Typography>
