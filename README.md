@@ -74,23 +74,23 @@ The application is hosted using **Firebase Hosting**. You can access the live ve
 
 ### Main Game Screen
 
-![Main Game Screen](./screenshots/1.png)
+![Main Game Screen](./tic-tac-toe/screenshots/1.png)
 
 ### New Game
 
-![Player Waiting Screen](./screenshots/2.png)
+![Player Waiting Screen](./tic-tac-toe/screenshots/2.png)
 
 ### Copying game id
 
-![Winning Screen](./screenshots/3.png)
+![Winning Screen](./tic-tac-toe/screenshots/3.png)
 
 ### Join the game
 
-![Losing Screen](./screenshots/4.png)
+![Losing Screen](./tic-tac-toe/screenshots/4.png)
 
 ### End game screen
 
-![Restart Screen](./screenshots/5.png)
+![Restart Screen](./tic-tac-toe/screenshots/5.png)
 
 ## 🤝 Contributing
 
