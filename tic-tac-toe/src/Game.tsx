@@ -9,6 +9,8 @@ interface GameState {
   xIsNext: boolean;
   winner: string | null;
   winningLine?: number[] | null;
+  playerX?: string;
+  playerO?: string;
 }
 
 const initialGameState: GameState = {
@@ -23,12 +25,11 @@ const Game: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [showGameIdInput, setShowGameIdInput] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [currentPlayer, setCurrentPlayer] = useState<"X" | "O" | null>(null);
 
-  // useEffect hook to listen for game state changes in Firebase
   useEffect(() => {
     if (gameId) {
       const gameRef = ref(database, `games/${gameId}`);
-
       const unsubscribe = onValue(gameRef, (snapshot) => {
         const state = snapshot.val();
         if (state) {
@@ -39,14 +40,16 @@ const Game: React.FC = () => {
     }
   }, [gameId]);
 
-  const handleJoinClick = () => {
-    setShowGameIdInput(true);
-  };
-
   const createNewGame = () => {
     const newGameRef = push(ref(database, "games"));
-    set(newGameRef, initialGameState);
+    const playerX = `${Math.random().toString(36).substr(2, 9)}`; // Generate a random player ID
+    set(newGameRef, { ...initialGameState, playerX });
     setGameId(newGameRef.key);
+    setCurrentPlayer("X");
+  };
+
+  const handleJoinClick = () => {
+    setShowGameIdInput(true);
   };
 
   const joinGame = async (id: string) => {
@@ -64,9 +67,30 @@ const Game: React.FC = () => {
         return;
       }
 
+      const gameData = snapshot.val();
+
+      const isPlayerXSet = !!gameData.playerX;
+      const isPlayerOSet = !!gameData.playerO;
+
+      if (!isPlayerXSet) {
+        set(
+          ref(database, `games/${id}/playerX`),
+          `${Math.random().toString(36).substr(2, 9)}`
+        );
+        setCurrentPlayer("X");
+      } else if (!isPlayerOSet) {
+        const playerO = `${Math.random().toString(36).substr(2, 9)}`;
+        set(ref(database, `games/${id}/playerO`), playerO);
+        setCurrentPlayer("O");
+      } else {
+        setErrorMessage(
+          "This game already has two players. Please create a new game."
+        );
+        return;
+      }
+
       setGameId(id);
-      const state = snapshot.val();
-      setGameState(state);
+      setGameState(gameData);
       setErrorMessage(null);
     } catch (error) {
       console.error("Error checking game ID:", error);
@@ -77,7 +101,15 @@ const Game: React.FC = () => {
   };
 
   const handleClick = (index: number) => {
-    if (!gameId || gameState.winner || gameState.squares[index]) return;
+    if (
+      !gameId ||
+      gameState.winner ||
+      gameState.squares[index] ||
+      (gameState.xIsNext && currentPlayer !== "X") ||
+      (!gameState.xIsNext && currentPlayer !== "O")
+    ) {
+      return;
+    }
 
     const squares = gameState.squares.slice();
     squares[index] = gameState.xIsNext ? "X" : "O";
@@ -123,7 +155,11 @@ const Game: React.FC = () => {
   const restartGame = () => {
     if (gameId) {
       const gameRef = ref(database, `games/${gameId}`);
-      set(gameRef, initialGameState);
+      set(gameRef, {
+        ...initialGameState,
+        playerX: gameState.playerX,
+        playerO: gameState.playerO,
+      });
     }
   };
 
@@ -176,6 +212,9 @@ const Game: React.FC = () => {
         <>
           <Typography variant="h6" gutterBottom>
             Game ID: {gameId}
+          </Typography>
+          <Typography variant="h6" gutterBottom>
+            {`You are Player ${currentPlayer}`}
           </Typography>
           <Board
             squares={gameState.squares}
