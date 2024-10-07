@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Button, Container, TextField, Typography, Box } from "@mui/material";
+import {
+  Button,
+  Container,
+  TextField,
+  Typography,
+  Box,
+  Tooltip,
+  IconButton,
+} from "@mui/material";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import Board from "./Board";
 import { database } from "./firebaseConfig";
 import { ref, onValue, set, push, get } from "firebase/database";
@@ -26,6 +35,7 @@ const Game: React.FC = () => {
   const [showGameIdInput, setShowGameIdInput] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<"X" | "O" | null>(null);
+  const [copyTooltipOpen, setCopyTooltipOpen] = useState(false);
 
   useEffect(() => {
     if (gameId) {
@@ -97,6 +107,15 @@ const Game: React.FC = () => {
       setErrorMessage(
         "An error occurred while trying to join the game. Please try again."
       );
+    }
+  };
+
+  const handleCopyGameId = () => {
+    if (gameId) {
+      navigator.clipboard.writeText(gameId).then(() => {
+        setCopyTooltipOpen(true);
+        setTimeout(() => setCopyTooltipOpen(false), 1500);
+      });
     }
   };
 
@@ -211,9 +230,35 @@ const Game: React.FC = () => {
       {gameId && (
         <>
           {(!gameState.playerX || !gameState.playerO) && (
-            <Typography variant="h6" gutterBottom>
-              Game ID: {gameId}
-            </Typography>
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              sx={{
+                backgroundColor: "#f5f5f5",
+                border: "1px solid #ddd",
+                borderRadius: "8px",
+                padding: "8px 16px",
+                marginBottom: "16px",
+                fontFamily: "monospace",
+              }}
+            >
+              <Typography variant="body1" sx={{ marginRight: "8px" }}>
+                Game ID: {gameId}
+              </Typography>
+              <Tooltip
+                title="Copied!"
+                open={copyTooltipOpen}
+                onClose={() => setCopyTooltipOpen(false)}
+                disableFocusListener
+                disableHoverListener
+                disableTouchListener
+              >
+                <IconButton size="small" onClick={handleCopyGameId}>
+                  <ContentCopyIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
           )}
           <Typography variant="h6" gutterBottom>
             {`You are Player ${currentPlayer}`}
