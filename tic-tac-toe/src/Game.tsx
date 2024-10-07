@@ -15,6 +15,7 @@ const initialGameState: GameState = {
   squares: Array(9).fill(""),
   xIsNext: true,
   winner: null,
+  winningLine: null,
 };
 
 const Game: React.FC = () => {
@@ -113,10 +114,17 @@ const Game: React.FC = () => {
         squares[a] === squares[b] &&
         squares[a] === squares[c]
       ) {
-        return { winner: squares[a], winningLine: lines[i] }; // Return both winner and winning line
+        return { winner: squares[a], winningLine: lines[i] };
       }
     }
     return { winner: null, winningLine: null };
+  };
+
+  const restartGame = () => {
+    if (gameId) {
+      const gameRef = ref(database, `games/${gameId}`);
+      set(gameRef, initialGameState);
+    }
   };
 
   return (
@@ -183,7 +191,7 @@ const Game: React.FC = () => {
             <Button
               variant="contained"
               color="error"
-              onClick={() => setGameState(initialGameState)}
+              onClick={restartGame}
               sx={{ mt: 2 }}
             >
               Restart Game
