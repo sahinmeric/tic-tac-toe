@@ -4,27 +4,29 @@ import Square from "./Square";
 
 interface BoardProps {
   squares: string[];
-  onClick: (i: number) => void;
+  onClick: (index: number) => void;
+  winningLine?: number[] | null;
 }
 
-const Board: React.FC<BoardProps> = ({ squares, onClick }) => {
-  const renderSquare = (i: number) => {
-    return <Square value={squares[i]} onClick={() => onClick(i)} />;
-  };
-
+const Board: React.FC<BoardProps> = ({ squares, onClick, winningLine }) => {
   return (
     <Box
       sx={{
         display: "grid",
         gridTemplateColumns: "repeat(3, 100px)",
-        gap: "10px", // Use `gap` instead of `gridGap`
+        gap: "10px",
         justifyContent: "center",
         alignItems: "center",
       }}
     >
-      {Array(9)
-        .fill(null)
-        .map((_, i) => renderSquare(i))}
+      {squares.map((value, index) => (
+        <Square
+          key={index}
+          value={value}
+          onClick={() => onClick(index)}
+          isWinningSquare={winningLine?.includes(index)} // Pass down whether the square is a winning square
+        />
+      ))}
     </Box>
   );
 };

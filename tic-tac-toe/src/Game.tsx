@@ -8,6 +8,7 @@ interface GameState {
   squares: string[];
   xIsNext: boolean;
   winner: string | null;
+  winningLine?: number[] | null;
 }
 
 const initialGameState: GameState = {
@@ -80,11 +81,14 @@ const Game: React.FC = () => {
     const squares = gameState.squares.slice();
     squares[index] = gameState.xIsNext ? "X" : "O";
 
+    const { winner, winningLine } = calculateWinner(squares);
+
     const newGameState: GameState = {
       ...gameState,
       squares,
       xIsNext: !gameState.xIsNext,
-      winner: calculateWinner(squares),
+      winner,
+      winningLine,
     };
 
     const gameRef = ref(database, `games/${gameId}`);
@@ -109,10 +113,10 @@ const Game: React.FC = () => {
         squares[a] === squares[b] &&
         squares[a] === squares[c]
       ) {
-        return squares[a];
+        return { winner: squares[a], winningLine: lines[i] }; // Return both winner and winning line
       }
     }
-    return null;
+    return { winner: null, winningLine: null };
   };
 
   return (
@@ -165,7 +169,11 @@ const Game: React.FC = () => {
           <Typography variant="h6" gutterBottom>
             Game ID: {gameId}
           </Typography>
-          <Board squares={gameState.squares} onClick={handleClick} />
+          <Board
+            squares={gameState.squares}
+            onClick={handleClick}
+            winningLine={gameState.winningLine}
+          />
           <Box mt={4} className="game-info">
             <Typography variant="h6">
               {gameState.winner

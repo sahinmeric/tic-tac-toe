@@ -4,9 +4,10 @@ import { Button } from "@mui/material";
 interface SquareProps {
   value: string;
   onClick: () => void;
+  isWinningSquare?: boolean;
 }
 
-const Square: React.FC<SquareProps> = ({ value, onClick }) => {
+const Square: React.FC<SquareProps> = ({ value, onClick, isWinningSquare }) => {
   return (
     <Button
       variant="outlined"
@@ -16,9 +17,8 @@ const Square: React.FC<SquareProps> = ({ value, onClick }) => {
         height: 100,
         fontSize: "24px",
         fontWeight: "bold",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
+        backgroundColor: isWinningSquare ? "lightgreen" : "white",
+        border: "1px solid #ccc",
       }}
     >
       {value}
