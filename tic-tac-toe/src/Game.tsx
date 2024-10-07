@@ -210,9 +210,11 @@ const Game: React.FC = () => {
       )}
       {gameId && (
         <>
-          <Typography variant="h6" gutterBottom>
-            Game ID: {gameId}
-          </Typography>
+          {(!gameState.playerX || !gameState.playerO) && (
+            <Typography variant="h6" gutterBottom>
+              Game ID: {gameId}
+            </Typography>
+          )}
           <Typography variant="h6" gutterBottom>
             {`You are Player ${currentPlayer}`}
           </Typography>
